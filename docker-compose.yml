@@ -1,0 +1,40 @@
+services:
+  db-gait:
+    build: ./BD
+    container_name: db-gait
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gait
+    ports:
+      - "3307:3306"
+    networks:
+      - gait-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
+  backend-gait:
+    build: ./backend
+    container_name: backend-gait
+    depends_on:
+      db-gait:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    networks:
+      - gait-net
+
+  frontend-gait:
+    build: ./frontend
+    container_name: frontend-gait
+    ports:
+      - "8080:80"
+    networks:
+      - gait-net
+
+networks:
+  gait-net:
+    driver: bridge
